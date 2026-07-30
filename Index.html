@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Divine Maxwell — Frontend & Game Developer</title>
+<meta name="description" content="Divine Maxwell — Frontend Developer, Game Developer and AI enthusiast building websites, web apps and games.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --bg:#080B16;
+  --card:#12192D;
+  --card-2:#0d1324;
+  --blue:#4F8CFF;
+  --purple:#8B5CF6;
+  --white:#FFFFFF;
+  --gray:#B7C0D1;
+  --blue-glow: rgba(79,140,255,0.35);
+  --purple-glow: rgba(139,92,246,0.35);
+  --border: rgba(183,192,209,0.14);
+  --font-display: 'Sora', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius: 16px;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--white);
+  font-family:var(--font-body);
+  line-height:1.6;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important;}
+}
+
+::selection{ background:var(--purple); color:var(--white); }
+
+/* custom scrollbar */
+::-webkit-scrollbar{ width:10px; }
+::-webkit-scrollbar-track{ background:var(--bg); }
+::-webkit-scrollbar-thumb{ background:linear-gradient(180deg,var(--blue),var(--purple)); border-radius:10px; }
+html{ scrollbar-color:var(--blue) var(--bg); scrollbar-width:thin; }
+
+a{ color:inherit; text-decoration:none; }
+ul{ list-style:none; }
+img{ max-width:100%; display:block; }
+button{ font-family:inherit; cursor:pointer; border:none; background:none; color:inherit; }
+
+.container{ max-width:1120px; margin:0 auto; padding:0 24px; }
+.eyebrow{
+  font-family:var(--font-mono);
+  font-size:0.78rem;
+  letter-spacing:0.12em;
+  color:var(--blue);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:14px;
+  text-transform:uppercase;
+}
+.eyebrow::before{ content:'>'; color:var(--purple); }
+h1,h2,h3{ font-family:var(--font-display); font-weight:700; letter-spacing:-0.01em; }
+section{ padding:120px 0; position:relative; }
+.section-head{ max-width:640px; margin-bottom:56px; }
+.section-head h2{ font-size:clamp(1.8rem,3.5vw,2.6rem); }
+.section-head p{ color:var(--gray); margin-top:14px; font-size:1rem; }
+
+/* HUD-style bracket card, the signature motif */
+.hud-card{
+  position:relative;
+  background:linear-gradient(180deg, rgba(18,25,45,0.75), rgba(13,19,36,0.75));
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  padding:28px;
+  transition: transform .35s ease, border-color .35s ease, box-shadow .35s ease;
+}
+.hud-card::before, .hud-card::after{
+  content:'';
+  position:absolute;
+  width:14px; height:14px;
+  border-color:var(--blue);
+  opacity:.55;
+  transition:opacity .35s ease, width .35s ease, height .35s ease;
+}
+.hud-card::before{ top:8px; left:8px; border-top:2px solid var(--blue); border-left:2px solid var(--blue); }
+.hud-card::after{ bottom:8px; right:8px; border-bottom:2px solid var(--purple); border-right:2px solid var(--purple); }
+.hud-card:hover{ transform:translateY(-6px); border-color:rgba(79,140,255,0.4); box-shadow:0 18px 40px -20px var(--blue-glow); }
+.hud-card:hover::before, .hud-card:hover::after{ width:22px; height:22px; opacity:1; }
+
+/* buttons */
+.btn{
+  font-family:var(--font-mono);
+  font-size:0.85rem;
+  letter-spacing:0.04em;
+  padding:14px 26px;
+  border-radius:10px;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
+  white-space:nowrap;
+}
+.btn-primary{
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  color:var(--white);
+  box-shadow:0 10px 30px -12px var(--blue-glow);
+}
+.btn-primary:hover{ transform:translateY(-3px); box-shadow:0 16px 34px -12px var(--purple-glow); }
+.btn-ghost{
+  border:1px solid var(--border);
+  color:var(--white);
+}
+.btn-ghost:hover{ border-color:var(--blue); background:rgba(79,140,255,0.08); transform:translateY(-3px); }
+
+/* ============ SCROLL PROGRESS ============ */
+#progress-bar{
+  position:fixed; top:0; left:0; height:3px; width:0%;
+  background:linear-gradient(90deg,var(--blue),var(--purple));
+  z-index:1000;
+  transition:width .1s linear;
+}
+
+/* ============ NAV ============ */
+header{
+  position:fixed; top:0; left:0; right:0; z-index:900;
+  padding:18px 0;
+  transition: background .3s ease, border-color .3s ease, padding .3s ease;
+  border-bottom:1px solid transparent;
+}
+header.scrolled{
+  background:rgba(8,11,22,0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom:1px solid var(--border);
+  padding:14px 0;
+}
+nav{ display:flex; align-items:center; justify-content:space-between; }
+.logo{ font-family:var(--font-display); font-weight:800; font-size:1.15rem; }
+.logo span{ color:var(--blue); }
+.nav-links{ display:flex; gap:34px; font-family:var(--font-mono); font-size:0.82rem; }
+.nav-links a{ color:var(--gray); position:relative; padding:4px 0; transition:color .25s ease; }
+.nav-links a:hover{ color:var(--white); }
+.nav-links a::after{
+  content:''; position:absolute; left:0; bottom:-4px; width:0; height:1px;
+  background:var(--blue); transition:width .25s ease;
+}
+.nav-links a:hover::after{ width:100%; }
+.nav-cta{ display:flex; align-items:center; gap:18px; }
+#nav-toggle{ display:none; width:26px; height:20px; position:relative; z-index:950; }
+#nav-toggle span{ position:absolute; left:0; width:100%; height:2px; background:var(--white); transition:.3s ease; }
+#nav-toggle span:nth-child(1){ top:0; }
+#nav-toggle span:nth-child(2){ top:9px; }
+#nav-toggle span:nth-child(3){ top:18px; }
+#nav-toggle.open span:nth-child(1){ transform:rotate(45deg) translate(5px,6px); }
+#nav-toggle.open span:nth-child(2){ opacity:0; }
+#nav-toggle.open span:nth-child(3){ transform:rotate(-45deg) translate(5px,-6px); }
+
+@media (max-width:840px){
+  .nav-links{
+    position:fixed; top:0; right:0; height:100vh; width:min(280px,72vw);
+    background:rgba(8,11,22,0.97); backdrop-filter:blur(16px);
+    flex-direction:column; justify-content:center; align-items:flex-start;
+    padding:40px; gap:26px; font-size:0.95rem;
+    transform:translateX(100%); transition:transform .35s ease;
+    border-left:1px solid var(--border);
+  }
+  .nav-links.open{ transform:translateX(0); }
+  .nav-cta .btn-ghost{ display:none; }
+  #nav-toggle{ display:block; }
+}
+
+/* ============ HERO ============ */
+#hero{
+  min-height:100vh;
+  display:flex; align-items:center;
+  padding-top:120px;
+  position:relative;
+  overflow:hidden;
+  --mx:50%; --my:40%;
+}
+#hero::before{
+  content:'';
+  position:absolute; inset:-20%;
+  background:
+    radial-gradient(600px circle at var(--mx) var(--my), var(--blue-glow), transparent 60%),
+    linear-gradient(120deg, rgba(79,140,255,0.08), rgba(139,92,246,0.08));
+  background-size:200% 200%, 100% 100%;
+  animation:drift 16s ease-in-out infinite;
+  pointer-events:none;
+  z-index:0;
+}
+@keyframes drift{
+  0%,100%{ background-position:0% 0%, 0 0; }
+  50%{ background-position:100% 100%, 0 0; }
+}
+.hero-grid{
+  display:grid; grid-template-columns:1.15fr 0.85fr; gap:60px; align-items:center;
+  position:relative; z-index:1;
+}
+@media (max-width:900px){ .hero-grid{ grid-template-columns:1fr; } }
+.hero-name{ font-size:clamp(2.4rem,5.5vw,3.6rem); line-height:1.05; margin-bottom:10px; }
+.hero-name .highlight{
+  background:linear-gradient(120deg,var(--blue),var(--purple));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.typing-wrap{
+  font-family:var(--font-mono); font-size:clamp(1.05rem,2.2vw,1.4rem);
+  color:var(--gray); margin-bottom:22px; min-height:34px; display:flex; align-items:center; gap:2px;
+}
+.typing-wrap .cursor{ display:inline-block; width:2px; height:1.1em; background:var(--blue); margin-left:4px; animation:blink 1s step-end infinite; }
+@keyframes blink{ 50%{ opacity:0; } }
+.hero-intro{ color:var(--gray); max-width:520px; margin-bottom:34px; font-size:1.02rem; }
+.hero-actions{ display:flex; flex-wrap:wrap; gap:16px; margin-bottom:20px; }
+
+.hero-photo-wrap{ display:flex; justify-content:center; position:relative; }
+.avatar-ring{
+  position:relative; width:min(320px,80%); aspect-ratio:1;
+  animation:float 5s ease-in-out infinite;
+}
+@keyframes float{ 0%,100%{ transform:translateY(0px);} 50%{ transform:translateY(-18px);} }
+.avatar-ring .ring{
+  position:absolute; inset:0; border-radius:50%;
+  border:1px solid var(--border);
+}
+.avatar-ring .ring:nth-child(1){ inset:-20px; animation:spin 22s linear infinite; border-style:dashed; border-color:rgba(79,140,255,0.35); }
+.avatar-ring .ring:nth-child(2){ inset:-40px; animation:spin 30s linear infinite reverse; border-color:rgba(139,92,246,0.25); }
+@keyframes spin{ from{ transform:rotate(0deg);} to{ transform:rotate(360deg);} }
+.avatar-core{
+  position:absolute; inset:0; border-radius:50%; overflow:hidden;
+  background:linear-gradient(160deg,var(--card),var(--card-2));
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 25px 60px -20px var(--blue-glow), inset 0 0 0 1px var(--border);
+}
+.avatar-core .initials{
+  font-family:var(--font-display); font-weight:800; font-size:4.2rem;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.avatar-core img{ width:100%; height:100%; object-fit:cover; display:none; }
+.scroll-cue{
+  position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
+  font-family:var(--font-mono); font-size:0.72rem; color:var(--gray);
+  display:flex; flex-direction:column; align-items:center; gap:8px; z-index:1;
+}
+.scroll-cue .line{ width:1px; height:34px; background:linear-gradient(var(--blue),transparent); animation:scrollcue 1.8s ease-in-out infinite; }
+@keyframes scrollcue{ 0%{ opacity:0; transform:scaleY(0); transform-origin:top;} 40%{ opacity:1; transform:scaleY(1); transform-origin:top;} 100%{ opacity:0; transform:scaleY(1); transform-origin:bottom;} }
+
+/* ============ REVEAL ============ */
+.reveal{ opacity:0; transform:translateY(28px); transition:opacity .7s ease, transform .7s ease; }
+.reveal.in{ opacity:1; transform:translateY(0); }
+
+/* ============ ABOUT ============ */
+#about .about-grid{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:50px; align-items:start; }
+@media (max-width:900px){ #about .about-grid{ grid-template-columns:1fr; } }
+#about p{ color:var(--gray); margin-bottom:16px; }
+.stats-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:18px; }
+.stat-card{ text-align:center; padding:26px 16px; }
+.stat-num{ font-family:var(--font-mono); font-size:2.1rem; font-weight:700; color:var(--blue); }
+.stat-label{ margin-top:6px; font-size:0.82rem; color:var(--gray); letter-spacing:0.03em; }
+
+/* ============ SKILLS ============ */
+.skills-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:20px; }
+.skill-card h3{ font-size:1.05rem; margin-bottom:16px; color:var(--white); }
+.skill-card h3 span{ color:var(--blue); font-family:var(--font-mono); font-size:0.8rem; display:block; margin-bottom:4px; }
+.tag-list{ display:flex; flex-wrap:wrap; gap:8px; }
+.tag{
+  font-family:var(--font-mono); font-size:0.75rem; padding:7px 12px;
+  border-radius:8px; background:rgba(79,140,255,0.08); border:1px solid var(--border); color:var(--gray);
+  transition:.25s ease;
+}
+.tag:hover{ border-color:var(--blue); color:var(--white); background:rgba(79,140,255,0.16); }
+
+/* ============ PROJECTS ============ */
+.filter-row{ display:flex; flex-wrap:wrap; gap:12px; margin-bottom:36px; }
+.filter-btn{
+  font-family:var(--font-mono); font-size:0.78rem; padding:9px 18px; border-radius:20px;
+  border:1px solid var(--border); color:var(--gray); transition:.25s ease;
+}
+.filter-btn:hover{ color:var(--white); border-color:var(--blue); }
+.filter-btn.active{ background:linear-gradient(135deg,var(--blue),var(--purple)); color:var(--white); border-color:transparent; }
+.projects-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(310px,1fr)); gap:24px; }
+.project-card{ display:flex; flex-direction:column; }
+.project-card .cat{ font-family:var(--font-mono); font-size:0.72rem; color:var(--purple); margin-bottom:10px; letter-spacing:0.06em; text-transform:uppercase; }
+.project-card h3{ font-size:1.2rem; margin-bottom:10px; }
+.project-card p{ color:var(--gray); font-size:0.92rem; margin-bottom:18px; flex:1; }
+.project-links{ display:flex; gap:14px; font-family:var(--font-mono); font-size:0.78rem; margin-bottom:14px; }
+.project-links a{ color:var(--blue); border-bottom:1px solid transparent; transition:.25s ease; }
+.project-links a:hover{ border-color:var(--blue); }
+.project-card.hidden{ display:none; }
+
+/* ============ SERVICES ============ */
+.services-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:22px; }
+.service-card .icon{
+  width:44px; height:44px; border-radius:12px; margin-bottom:18px;
+  background:linear-gradient(135deg,var(--blue),var(--purple));
+  display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-weight:700;
+}
+.service-card h3{ font-size:1.05rem; margin-bottom:10px; }
+.service-card ul{ color:var(--gray); font-size:0.88rem; display:flex; flex-direction:column; gap:6px; }
+.service-card li::before{ content:'— '; color:var(--blue); }
+
+/* ============ TIMELINE ============ */
+.timeline{ position:relative; padding-left:34px; }
+.timeline::before{ content:''; position:absolute; left:6px; top:6px; bottom:6px; width:1px; background:linear-gradient(var(--blue),var(--purple)); }
+.tl-item{ position:relative; padding-bottom:34px; }
+.tl-item:last-child{ padding-bottom:0; }
+.tl-item::before{
+  content:''; position:absolute; left:-34px; top:4px; width:13px; height:13px; border-radius:50%;
+  background:var(--bg); border:2px solid var(--blue); box-shadow:0 0 0 4px rgba(79,140,255,0.12);
+}
+.tl-year{ font-family:var(--font-mono); font-size:0.78rem; color:var(--blue); margin-bottom:6px; display:block; }
+.tl-item p{ color:var(--gray); }
+
+/* ============ WHY WORK ============ */
+.why-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; }
+.why-card{ padding:22px; text-align:left; }
+.why-card .check{ color:var(--blue); font-family:var(--font-mono); margin-right:8px; }
+
+/* ============ CONTACT ============ */
+#contact .contact-inner{ text-align:center; max-width:640px; margin:0 auto; }
+#contact .section-head{ margin:0 auto 40px; text-align:center; }
+.contact-methods{ display:flex; flex-wrap:wrap; justify-content:center; gap:14px; margin-bottom:34px; font-family:var(--font-mono); font-size:0.85rem; color:var(--gray); }
+.contact-methods span{ padding:10px 16px; border:1px solid var(--border); border-radius:10px; }
+.contact-actions{ display:flex; flex-wrap:wrap; justify-content:center; gap:16px; }
+
+/* ============ FOOTER ============ */
+footer{ padding:44px 0; border-top:1px solid var(--border); text-align:center; }
+footer .f-name{ font-family:var(--font-display); font-weight:700; margin-bottom:6px; }
+footer .f-role{ color:var(--gray); font-size:0.85rem; margin-bottom:14px; }
+footer .f-copy{ color:var(--gray); font-size:0.78rem; font-family:var(--font-mono); }
+
+/* ============ BACK TO TOP ============ */
+#back-to-top{
+  position:fixed; bottom:28px; right:28px; width:46px; height:46px; border-radius:50%;
+  background:rgba(18,25,45,0.85); border:1px solid var(--border); backdrop-filter:blur(10px);
+  display:flex; align-items:center; justify-content:center; z-index:800;
+  opacity:0; pointer-events:none; transform:translateY(10px);
+  transition:.3s ease;
+}
+#back-to-top.show{ opacity:1; pointer-events:auto; transform:translateY(0); }
+#back-to-top:hover{ border-color:var(--blue); }
+#back-to-top svg{ width:18px; height:18px; }
+
+/* focus visibility for accessibility */
+a:focus-visible, button:focus-visible{ outline:2px solid var(--blue); outline-offset:3px; }
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<header id="site-header">
+  <div class="container">
+    <nav>
+      <a href="#hero" class="logo">Divine<span>Maxwell</span></a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="#about" class="nav-link">About</a></li>
+        <li><a href="#skills" class="nav-link">Skills</a></li>
+        <li><a href="#projects" class="nav-link">Projects</a></li>
+        <li><a href="#services" class="nav-link">Services</a></li>
+        <li><a href="#journey" class="nav-link">Journey</a></li>
+        <li><a href="#contact" class="nav-link">Contact</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="#contact" class="btn btn-ghost">Hire Me</a>
+        <button id="nav-toggle" aria-label="Toggle menu"><span></span><span></span><span></span></button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- ============ HERO ============ -->
+<section id="hero">
+  <div class="container hero-grid">
+    <div>
+      <div class="eyebrow">whoami</div>
+      <h1 class="hero-name">Divine Maxwell —<br><span class="highlight">building for the web & beyond.</span></h1>
+      <div class="typing-wrap"><span id="typed-text"></span><span class="cursor"></span></div>
+      <p class="hero-intro">I build modern websites, intelligent web applications, and interactive game experiences. Passionate about solving problems through technology, I enjoy creating digital solutions while continuously learning and improving my skills.</p>
+      <div class="hero-actions">
+        <a href="#contact" class="btn btn-primary">Hire Me</a>
+        <a href="#projects" class="btn btn-ghost">View Projects</a>
+        <a href="#" class="btn btn-ghost" id="cv-btn">Download CV</a>
+      </div>
+    </div>
+    <div class="hero-photo-wrap">
+      <div class="avatar-ring">
+        <div class="ring"></div>
+        <div class="ring"></div>
+        <div class="avatar-core">
+          <span class="initials">DM</span>
+          <img src="" alt="Divine Maxwell portrait" id="hero-photo">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-cue"><span>SCROLL</span><span class="line"></span></div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section id="about">
+  <div class="container about-grid">
+    <div class="reveal">
+      <div class="eyebrow">about_me</div>
+      <h2 style="margin-bottom:20px;">Who I Am</h2>
+      <p>I'm Divine Maxwell, a developer based in Nigeria with a passion for building websites, web applications, and games.</p>
+      <p>My journey into programming started with a desire to gain valuable knowledge and create opportunities through technology.</p>
+      <p>I enjoy building responsive websites, experimenting with AI-powered applications, and developing games using the Godot Engine. Every project strengthens my technical skills while improving my creativity, problem-solving abilities, and attention to detail.</p>
+      <p>I'm committed to continuous learning and enjoy collaborating with others to build practical, user-focused digital products.</p>
+    </div>
+    <div class="stats-grid reveal">
+      <div class="hud-card stat-card"><div class="stat-num" data-target="8" data-suffix="+">0</div><div class="stat-label">Projects</div></div>
+      <div class="hud-card stat-card"><div class="stat-num" data-target="10" data-suffix="+">0</div><div class="stat-label">Technologies</div></div>
+      <div class="hud-card stat-card"><div class="stat-num" data-target="100" data-suffix="%">0</div><div class="stat-label">Learning Every Day</div></div>
+      <div class="hud-card stat-card"><div class="stat-num" data-infinity="true">0</div><div class="stat-label">Passion</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SKILLS ============ -->
+<section id="skills">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">skill_tree</div>
+      <h2>Skills</h2>
+      <p>The tools and disciplines I use to turn ideas into working products.</p>
+    </div>
+    <div class="skills-grid">
+      <div class="hud-card skill-card reveal">
+        <h3><span>01</span>Frontend</h3>
+        <div class="tag-list">
+          <span class="tag">HTML5</span><span class="tag">CSS3</span><span class="tag">JavaScript</span><span class="tag">Responsive Design</span>
+        </div>
+      </div>
+      <div class="hud-card skill-card reveal">
+        <h3><span>02</span>Programming</h3>
+        <div class="tag-list">
+          <span class="tag">Python — Intermediate</span><span class="tag">Godot Engine — Beginner</span><span class="tag">Game Development — Beginner</span>
+        </div>
+      </div>
+      <div class="hud-card skill-card reveal">
+        <h3><span>03</span>Professional</h3>
+        <div class="tag-list">
+          <span class="tag">Problem Solving</span><span class="tag">Fast Learner</span><span class="tag">Communication</span><span class="tag">Attention to Detail</span><span class="tag">Teamwork</span><span class="tag">Creativity</span><span class="tag">Patience</span>
+        </div>
+      </div>
+      <div class="hud-card skill-card reveal">
+        <h3><span>04</span>Tools</h3>
+        <div class="tag-list">
+          <span class="tag">CodePen</span><span class="tag">GitHub</span><span class="tag">Git</span><span class="tag">Figma</span><span class="tag">VS Code</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROJECTS ============ -->
+<section id="projects">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">featured_work</div>
+      <h2>Featured Projects</h2>
+      <p>A mix of games, AI experiments and business websites.</p>
+    </div>
+    <div class="filter-row reveal">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="game">Game Development</button>
+      <button class="filter-btn" data-filter="ai">AI Web App</button>
+      <button class="filter-btn" data-filter="frontend">Frontend</button>
+      <button class="filter-btn" data-filter="business">Business</button>
+    </div>
+    <div class="projects-grid">
+
+      <div class="hud-card project-card reveal" data-category="game">
+        <div class="cat">Game Development</div>
+        <h3>Fatal Gods</h3>
+        <p>A 3D fighting game inspired by classic fighting games, built with the Godot Engine. Focused on player movement, combat mechanics, collision detection, health systems and gameplay programming.</p>
+        <div class="tag-list" style="margin-bottom:14px;"><span class="tag">Godot Engine</span><span class="tag">GDScript</span></div>
+        <div class="project-links"><a href="#">View Project →</a><a href="#">Source Code</a></div>
+      </div>
+
+      <div class="hud-card project-card reveal" data-category="ai">
+        <div class="cat">AI Web Application</div>
+        <h3>Mystery Girl</h3>
+        <p>An AI-powered web application designed to explore intelligent conversations and interactive user experiences, combining modern web development with AI concepts.</p>
+        <div class="tag-list" style="margin-bottom:14px;"><span class="tag">HTML</span><span class="tag">CSS</span><span class="tag">JavaScript</span><span class="tag">AI APIs</span></div>
+        <div class="project-links"><a href="#">View Project →</a><a href="#">Source Code</a></div>
+      </div>
+
+      <div class="hud-card project-card reveal" data-category="business">
+        <div class="cat">Frontend</div>
+        <h3>Restaurant Website</h3>
+        <p>A responsive business website designed for restaurants with modern layouts, menus, contact information, and mobile-friendly navigation.</p>
+        <div class="project-links"><a href="#">View Project →</a><a href="#">Source Code</a></div>
+      </div>
+
+      <div class="hud-card project-card reveal" data-category="business">
+        <div class="cat">Business Website</div>
+        <h3>Bakery Website</h3>
+        <p>A visually appealing bakery website showcasing products, promotions, and customer information through a clean, responsive design.</p>
+        <div class="project-links"><a href="#">View Project →</a><a href="#">Source Code</a></div>
+      </div>
+
+      <div class="hud-card project-card reveal" data-category="frontend">
+        <div class="cat">Frontend</div>
+        <h3>Landing Page</h3>
+        <p>A modern landing page designed to improve user engagement through clean layouts and clear calls to action.</p>
+        <div class="project-links"><a href="#">View Project →</a><a href="#">Source Code</a></div>
+      </div>
+
+      <div class="hud-card project-card reveal" data-category="frontend">
+        <div class="cat">Portfolio</div>
+        <h3>Portfolio Website</h3>
+        <p>My personal portfolio showcasing projects, skills, and professional growth as a developer.</p>
+        <div class="project-links"><a href="#">View Project →</a><a href="#">Source Code</a></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ SERVICES ============ -->
+<section id="services">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">services</div>
+      <h2>Services</h2>
+      <p>How I can help you build and maintain your next project.</p>
+    </div>
+    <div class="services-grid">
+      <div class="hud-card service-card reveal">
+        <div class="icon">W</div>
+        <h3>Website Development</h3>
+        <ul><li>Responsive website design</li><li>Landing page development</li><li>Business websites</li></ul>
+      </div>
+      <div class="hud-card service-card reveal">
+        <div class="icon">G</div>
+        <h3>Game Development</h3>
+        <ul><li>Godot Engine projects</li><li>Gameplay & combat systems</li></ul>
+      </div>
+      <div class="hud-card service-card reveal">
+        <div class="icon">A</div>
+        <h3>AI Web Applications</h3>
+        <ul><li>AI-integrated experiences</li><li>Interactive interfaces</li></ul>
+      </div>
+      <div class="hud-card service-card reveal">
+        <div class="icon">V</div>
+        <h3>Virtual Assistance</h3>
+        <ul><li>Customer support</li><li>Technical support</li><li>Website maintenance</li></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ JOURNEY ============ -->
+<section id="journey">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">learning_journey</div>
+      <h2>Learning Journey</h2>
+      <p>2025 — the year it all started.</p>
+    </div>
+    <div class="timeline">
+      <div class="tl-item reveal"><span class="tl-year">2025</span><p>Started learning programming.</p></div>
+      <div class="tl-item reveal"><span class="tl-year">Step 2</span><p>Built first websites.</p></div>
+      <div class="tl-item reveal"><span class="tl-year">Step 3</span><p>Started learning Python.</p></div>
+      <div class="tl-item reveal"><span class="tl-year">Step 4</span><p>Started learning Godot Engine.</p></div>
+      <div class="tl-item reveal"><span class="tl-year">Step 5</span><p>Created Fatal Gods.</p></div>
+      <div class="tl-item reveal"><span class="tl-year">Step 6</span><p>Built AI project concepts.</p></div>
+      <div class="tl-item reveal"><span class="tl-year">Now</span><p>Looking for remote opportunities.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WHY WORK WITH ME ============ -->
+<section id="why">
+  <div class="container">
+    <div class="section-head reveal">
+      <div class="eyebrow">why_me</div>
+      <h2>Why Work With Me</h2>
+    </div>
+    <div class="why-grid">
+      <div class="hud-card why-card reveal"><span class="check">✔</span>Fast Learner</div>
+      <div class="hud-card why-card reveal"><span class="check">✔</span>Reliable</div>
+      <div class="hud-card why-card reveal"><span class="check">✔</span>Problem Solver</div>
+      <div class="hud-card why-card reveal"><span class="check">✔</span>Detail Oriented</div>
+      <div class="hud-card why-card reveal"><span class="check">✔</span>Creative Thinker</div>
+      <div class="hud-card why-card reveal"><span class="check">✔</span>Team Player</div>
+      <div class="hud-card why-card reveal"><span class="check">✔</span>Strong Communication</div>
+      <div class="hud-card why-card reveal"><span class="check">✔</span>Continuous Learner</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CONTACT ============ -->
+<section id="contact">
+  <div class="container contact-inner">
+    <div class="section-head reveal">
+      <div class="eyebrow">get_in_touch</div>
+      <h2>Let's Build Something</h2>
+      <p>Open to remote roles, freelance work, and collaborations.</p>
+    </div>
+    <div class="contact-methods reveal">
+      <span>maxwelldivine18@gmail.com</span>
+      <span>09013710345</span>
+      <span>linkedin.com/in/divine-maxwell-998678386</span>
+    </div>
+    <div class="contact-actions reveal">
+      <a href="mailto:maxwelldivine18@gmail.com" class="btn btn-primary">Send Email</a>
+      <a href="https://linkedin.com/in/divine-maxwell-998678386" target="_blank" rel="noopener" class="btn btn-ghost">LinkedIn</a>
+      <a href="#" class="btn btn-ghost">Download CV</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="f-name">Divine Maxwell</div>
+    <div class="f-role">Frontend Developer • Web Developer • Game Developer</div>
+    <div class="f-copy">© 2026 Divine Maxwell — Designed & Developed by Divine Maxwell</div>
+  </div>
+</footer>
+
+<button id="back-to-top" aria-label="Back to top">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+</button>
+
+<script>
+/* ---------- Scroll progress bar ---------- */
+const progressBar = document.getElementById('progress-bar');
+const header = document.getElementById('site-header');
+const backToTop = document.getElementById('back-to-top');
+
+function onScroll(){
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+  progressBar.style.width = pct + '%';
+
+  header.classList.toggle('scrolled', scrollTop > 40);
+  backToTop.classList.toggle('show', scrollTop > 500);
+}
+window.addEventListener('scroll', onScroll, { passive:true });
+onScroll();
+
+backToTop.addEventListener('click', () => window.scrollTo({ top:0, behavior:'smooth' }));
+
+/* ---------- Mobile nav ---------- */
+const navToggle = document.getElementById('nav-toggle');
+const navLinks = document.getElementById('nav-links');
+navToggle.addEventListener('click', () => {
+  navToggle.classList.toggle('open');
+  navLinks.classList.toggle('open');
+});
+document.querySelectorAll('.nav-link').forEach(link => {
+  link.addEventListener('click', () => {
+    navToggle.classList.remove('open');
+    navLinks.classList.remove('open');
+  });
+});
+
+/* ---------- Typing animation ---------- */
+const titles = ['Frontend Developer','Web Developer','Software Developer','Game Developer','Virtual Assistant','AI Enthusiast'];
+const typedEl = document.getElementById('typed-text');
+let tIndex = 0, cIndex = 0, deleting = false;
+
+function typeLoop(){
+  const current = titles[tIndex];
+  if(!deleting){
+    cIndex++;
+    typedEl.textContent = current.slice(0, cIndex);
+    if(cIndex === current.length){ deleting = true; setTimeout(typeLoop, 1400); return; }
+  } else {
+    cIndex--;
+    typedEl.textContent = current.slice(0, cIndex);
+    if(cIndex === 0){ deleting = false; tIndex = (tIndex + 1) % titles.length; }
+  }
+  setTimeout(typeLoop, deleting ? 40 : 85);
+}
+typeLoop();
+
+/* ---------- Mouse glow on hero ---------- */
+const hero = document.getElementById('hero');
+hero.addEventListener('mousemove', (e) => {
+  const rect = hero.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) / rect.width) * 100;
+  const y = ((e.clientY - rect.top) / rect.height) * 100;
+  hero.style.setProperty('--mx', x + '%');
+  hero.style.setProperty('--my', y + '%');
+});
+
+/* ---------- Scroll reveal ---------- */
+const revealEls = document.querySelectorAll('.reveal');
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(entry.isIntersecting){
+      entry.target.classList.add('in');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold:0.15 });
+revealEls.forEach(el => revealObserver.observe(el));
+
+/* ---------- Animated counters ---------- */
+const statEls = document.querySelectorAll('.stat-num');
+const statObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if(!entry.isIntersecting) return;
+    const el = entry.target;
+    statObserver.unobserve(el);
+
+    if(el.dataset.infinity){
+      el.textContent = '∞';
+      return;
+    }
+
+    const target = parseInt(el.dataset.target, 10);
+    const suffix = el.dataset.suffix || '';
+    const duration = 1400;
+    const start = performance.now();
+
+    function step(now){
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = Math.round(eased * target) + suffix;
+      if(progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  });
+}, { threshold:0.4 });
+statEls.forEach(el => statObserver.observe(el));
+
+/* ---------- Project filtering ---------- */
+const filterBtns = document.querySelectorAll('.filter-btn');
+const projectCards = document.querySelectorAll('.project-card');
+filterBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    filterBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const filter = btn.dataset.filter;
+    projectCards.forEach(card => {
+      const match = filter === 'all' || card.dataset.category === filter;
+      card.classList.toggle('hidden', !match);
+    });
+  });
+});
+</script>
+</body>
+</html>
